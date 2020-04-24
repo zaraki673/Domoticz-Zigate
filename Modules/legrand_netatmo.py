@@ -62,6 +62,31 @@ def legrandReadRawAPS(self, Devices, srcNWKID, srcEp, ClusterID, dstNWKID, dstEP
     Domoticz.Log("legrandReadRawAPS - Nwkid: %s Ep: %s, Cluster: %s, dstNwkid: %s, dstEp: %s, Payload: %s" \
             %(srcNWKID, srcEp, ClusterID, dstNWKID, dstEP, MsgPayload))
 
+    # At Device Annoucement 0x00 and 0x05 are sent by device
+
+    FrameClusterField = MsgPayload[0:2]
+    if FrameClusterField in ( '15' ): 
+        # 0x15: Cluster Specifc, Manuf Code, Client to Srerve, Disable Default Response
+        ManufacturerCode = MsgPayload[2:6]
+        SQN = MsgPayload[6:8]
+        Command = MsgPayload[8:10]
+        Data = MsgPayload[10:]
+    elif FrameClusterField in ( '11' ) :
+        # 0x11: Cluster Specific, Client to Server, Disable Default response
+        SQN = MsgPayload[2:4]
+        Command = MsgPayload[4:6]
+
+    if Command == '00': # No data (Cluster 0x0102)
+        pass
+    elif Command == '01': # No data (Cluster 0x0102)
+        pass
+    elif Command == '05': # Lenght 8 (Cluster 0xfc01)
+        # Always he same data c53d890000740400
+        pass
+    elif Command == '09':  # Lenghth 9 (Cluster 0x0102)
+        pass
+
+
 def rejoin_legrand( self, nwkid):
 
     if nwkid not in self.ListOfDevices:
