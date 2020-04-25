@@ -78,14 +78,42 @@ def legrandReadRawAPS(self, Devices, srcNWKID, srcEp, ClusterID, dstNWKID, dstEP
 
     if Command == '00': # No data (Cluster 0x0102)
         pass
+
     elif Command == '01': # No data (Cluster 0x0102)
         pass
-    elif Command == '05': # Lenght 8 (Cluster 0xfc01)
-        # Always he same data c53d890000740400
-        pass
-    elif Command == '09':  # Lenghth 9 (Cluster 0x0102)
+
+    elif Command == '02': # 1 Byte lenght ( 0x00 )
         pass
 
+    elif Command == '03': # 1 byte Lenght ( 0xff )
+        pass
+
+    elif Command == '09':
+        # Provide IEEE of the device and a counter
+        # Should respond with command 0x0c + group membership and counter
+
+        pass
+    elif Command == '0a': 
+        # Received by Dimmer : Value: fafe 4f a5 82 00 00 74 04 00 / 0101
+        #                             fafe a4 09 1f 00 00 74 04 00 / 0101
+        #                             fefe a4 09 1f 00 00 74 04 00 / 0101
+        # Response sent by HUB is sending 0x10 : FCF 0x1d, Manuf 0x1021, Sqn, 0x10, Value: 0001014fa5820000740400
+        #                                                                                  000101a4091f0000740400
+        pass
+
+
+
+def registrationLegrand( self, nwkid):
+
+    # FCF: 0x40
+    # dstEp: 01
+    # Cluster: 0xfc01
+    # Command: 0x0e
+    # Data: 01
+
+def registrationLegrand( self, nwkid):
+
+    return
 
 def rejoin_legrand( self, nwkid):
 
