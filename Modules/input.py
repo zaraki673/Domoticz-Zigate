@@ -2148,7 +2148,7 @@ def Decode004D(self, Devices, MsgData, MsgRSSI) : # Reception Device announce
         PREFIX_MACADDR_LEGRAND = '000474'
         if MsgIEEE[0:len(PREFIX_MACADDR_LEGRAND)] == PREFIX_MACADDR_LEGRAND:
             Domoticz.Log("Detected a Legrand IEEE, broadcast Write Attribute 0x0000/0xf000")
-            write_attributeNoResponse( self, MsgSrcAddr, ZIGATE_EP, '01', '0000', '1021', '01', 'f000', '23', '00000000')
+            write_attributeNoResponse( self, 'ffff', ZIGATE_EP, '01', '0000', '1021', '01', 'f000', '23', '00000000')
 
         # New device comming. The IEEE is not known
         loggingInput( self, 'Debug', "Decode004D - New Device %s %s" %(MsgSrcAddr, MsgIEEE), MsgSrcAddr)
