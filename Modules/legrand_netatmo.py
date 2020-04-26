@@ -81,6 +81,7 @@ def legrandReadRawAPS(self, Devices, srcNWKID, srcEp, ClusterID, dstNWKID, dstEP
 
     else:
         Domoticz.Log("legrandReadRawAPS - Unexpected FCF: %s" %(FrameClusterField))
+        return
 
     if Command == '00': # No data (Cluster 0x0102)
         pass
