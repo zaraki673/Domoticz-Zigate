@@ -1535,7 +1535,7 @@ def Thermostat_LockMode( self, key, lockmode):
     write_attribute( self, key, "01", EPout, cluster_id, manuf_id, manuf_spec, Hattribute, data_type, Hdata)
 
 
-def raw_APS_request( self, targetaddr, dest_ep, cluster, profileId, payload, zigate_ep=ZIGATE_EP):
+def raw_APS_request( self, targetaddr, dest_ep, cluster, profileId, payload, zigate_ep=ZIGATE_EP, radius=0x00):
 
     """" Command
     This function submits a request to send data to a remote node, with no restrictions
@@ -1584,7 +1584,10 @@ def raw_APS_request( self, targetaddr, dest_ep, cluster, profileId, payload, zig
 
     addr_mode ='%02X' % ADDRESS_MODE['short']
     security = '%02X' %SECURITY
-    radius = '%02X' %RADIUS
+    if radius:
+        radius = '%02x' %radius
+    else:
+        radius = '%02X' %RADIUS
 
     len_payload = (len(payload)) // 2
     len_payload = '%02x' %len_payload

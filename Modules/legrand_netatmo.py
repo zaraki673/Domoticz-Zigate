@@ -135,7 +135,7 @@ def sendFC01Command( self, nwkid, ep, cmd, data):
             sqn = '%02x' %(int(self.ListOfDevices[nwkid]['SQN'],16) + 1)
 
     payload = cluster_frame + manuf_id + sqn + cmd + data
-    raw_APS_request( self, nwkid, ep, 'fc01', '0104', payload)
+    raw_APS_request( self, nwkid, ep, 'fc01', '0104', payload, radius= 0x20)
     Domoticz.Log("send 0xFC01 command 0x%s for %s/%s with payload: %s" %(cmd, nwkid, ep, data))
 
 
