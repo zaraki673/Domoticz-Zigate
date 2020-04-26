@@ -99,6 +99,7 @@ def legrandReadRawAPS(self, Devices, srcNWKID, srcEp, ClusterID, dstNWKID, dstEP
         # Should respond with command 0x0c + group membership and counter
         _ieee = Data[0:16]
         _count = Data[16:18]
+        Domoticz.Log("---> Decoding cmd 0x09 Ieee: %s Count: %s" %(_ieee, _count))
         LegrandGroupMemberShip = 'fefe'
         sendFC01Command( self, srcNWKID, srcEp, '0c', LegrandGroupMemberShip + _count)
 
@@ -108,7 +109,12 @@ def legrandReadRawAPS(self, Devices, srcNWKID, srcEp, ClusterID, dstNWKID, dstEP
         #                             fefe a4 09 1f 00 00 74 04 00 / 0101
         # Response sent by HUB is sending 0x10 : FCF 0x1d, Manuf 0x1021, Sqn, 0x10, Value: 0001014fa5820000740400
         #                                                                                  000101a4091f0000740400
-        pass
+
+        LegrandGroupMemberShip = Data[0:4]
+        _ieee = Data[4:20]
+        _code = Data[20:4]
+        Domoticz.Log("---> Decoding cmd: 0x0a Group: %s, Ieee: %s Code: %s" %(LegrandGroupMemberShip, _ieee, _code))
+
 
 
 def sendFC01Command( self, nwkid, ep, cmd, data):
