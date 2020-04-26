@@ -110,6 +110,7 @@ def registrationLegrand( self, nwkid):
     # Cluster: 0xfc01
     # Command: 0x0e
     # Data: 01
+    pass
 
 def registrationLegrand( self, nwkid):
 
