@@ -96,8 +96,6 @@ def legrandReadRawAPS(self, Devices, srcNWKID, srcEp, ClusterID, dstNWKID, dstEP
         pass
 
     elif Command == '09':
-        # Provide IEEE of the device and a counter
-        # Should respond with command 0x0c + group membership and counter
         _ieee = Data[0:16]
         _count = Data[16:18]
         Domoticz.Log("---> Decoding cmd 0x09 Ieee: %s Count: %s" %(_ieee, _count))
@@ -105,24 +103,20 @@ def legrandReadRawAPS(self, Devices, srcNWKID, srcEp, ClusterID, dstNWKID, dstEP
         sendFC01Command( self, srcNWKID, srcEp, '0c', LegrandGroupMemberShip + _count)
 
     elif Command == '0a': 
-        # Received by Dimmer : Value: fafe 4f a5 82 00 00 74 04 00 / 0101
-        #                             fafe a4 09 1f 00 00 74 04 00 / 0101
-        #                             fefe a4 09 1f 00 00 74 04 00 / 0101
-        # Response sent by HUB is sending 0x10 : FCF 0x1d, Manuf 0x1021, Sqn, 0x10, Value: 0001014fa5820000740400
-        #                                                                                  000101a4091f0000740400
-
         LegrandGroupMemberShip = Data[0:4]
         _ieee = Data[4:20]
         _code = Data[20:24]
         Domoticz.Log("---> Decoding cmd: 0x0a Group: %s, Ieee: %s Code: %s" %(LegrandGroupMemberShip, _ieee, _code))
         status = '00'
-        _ieee = '4fa582000074040000101' # IEEE du Dimmer
+        #_ieee = '%08X' %struct.unpack('q',struct.pack('>Q',int(ieee,16)))[0]
+        _ieee = '4fa5820000740400' # IEEE du Dimmer
         sendFC01Command( self, srcNWKID, srcEp, '10', status + _code + _ieee )
 
 
 def sendFC01Command( self, nwkid, ep, cmd, data):
 
     if nwkid not in self.ListOfDevices:
+        Domoticz.Error("sendFC01Command - nwkid: %s do not exist" %nwkid)
         return
 
     manuf_id = '1021'
