@@ -71,10 +71,12 @@ def legrandReadRawAPS(self, Devices, srcNWKID, srcEp, ClusterID, dstNWKID, dstEP
         SQN = MsgPayload[6:8]
         Command = MsgPayload[8:10]
         Data = MsgPayload[10:]
+        
     elif FrameClusterField in ( '11' ) :
         # 0x11: Cluster Specific, Client to Server, Disable Default response
         SQN = MsgPayload[2:4]
         Command = MsgPayload[4:6]
+        Data = MsgPayload[6:]
 
     if Command == '00': # No data (Cluster 0x0102)
         pass
@@ -91,8 +93,11 @@ def legrandReadRawAPS(self, Devices, srcNWKID, srcEp, ClusterID, dstNWKID, dstEP
     elif Command == '09':
         # Provide IEEE of the device and a counter
         # Should respond with command 0x0c + group membership and counter
+        _ieee = Data[0:16]
+        _count = Data[16:18]
+        LegrandGroupMemberShip = 'fefe'
+        sendFC01Command( self, srcNWKID, srcEp, '0c', LegrandGroupMemberShip + _count)
 
-        pass
     elif Command == '0a': 
         # Received by Dimmer : Value: fafe 4f a5 82 00 00 74 04 00 / 0101
         #                             fafe a4 09 1f 00 00 74 04 00 / 0101
@@ -101,6 +106,30 @@ def legrandReadRawAPS(self, Devices, srcNWKID, srcEp, ClusterID, dstNWKID, dstEP
         #                                                                                  000101a4091f0000740400
         pass
 
+
+def sendFC01Command( self, nwkid, ep, cmd, data):
+
+    if nwkid not in self.ListOfDevices:
+        return
+
+    manuf_id = '1021'
+    cluster_id = 'fc01'
+
+    EPout = '01'
+    for tmpEp in self.ListOfDevices[nwkid]['Ep']:
+        if "fc01" in self.ListOfDevices[nwkid]['Ep'][tmpEp]:
+            EPout= tmpEp
+
+
+    cluster_frame = '1d' # Cluster Spec, Manuf Spec, Sever to Client, Disable Default Response
+    sqn = '00'
+    if 'SQN' in self.ListOfDevices[nwkid]:
+        if self.ListOfDevices[nwkid]['SQN'] != {} and self.ListOfDevices[nwkid]['SQN'] != '':
+            sqn = '%02x' %(int(self.ListOfDevices[nwkid]['SQN'],16) + 1)
+
+    payload = cluster_frame + manuf_id + sqn + cmd + data
+    raw_APS_request( self, nwkid, ep, 'fc01', '0104', payload)
+    Domoticz.Log("send 0xFC01 command 0x%s for %s/%s with payload: %s" %(cmd, nwkid, ep, data))
 
 
 def registrationLegrand( self, nwkid):
@@ -118,25 +147,19 @@ def registrationLegrand( self, nwkid):
 
 def rejoin_legrand( self, nwkid):
 
+    """
+    Send a Write Attributes no responses
+    """
+
     if nwkid not in self.ListOfDevices:
         return
 
     manuf_id = '1021'
-    manuf_spec = "01"
-    cluster_id = '0000'
-    Hattribute = 'f000'
-    data_type = '23'
-    Hdata = '00000000'
 
     EPout = '01'
     for tmpEp in self.ListOfDevices[nwkid]['Ep']:
         if "fc01" in self.ListOfDevices[nwkid]['Ep'][tmpEp]:
             EPout= tmpEp
-
-    loggingLegrand( self, 'Debug', "Write Attributes No Response Nwkid: %s" %nwkid, nwkid)
-
-    # Overwrite nwkid with 'ffff' in order to make a broadcast
-    write_attribute( self, 'ffff', "01", EPout, cluster_id, manuf_id, manuf_spec, Hattribute, data_type, Hdata)
 
     # To be use if the Write Attribute is not conclusive
     cluster_frame = '14'
@@ -144,7 +167,8 @@ def rejoin_legrand( self, nwkid):
     if 'SQN' in self.ListOfDevices[nwkid]:
         if self.ListOfDevices[nwkid]['SQN'] != {} and self.ListOfDevices[nwkid]['SQN'] != '':
             sqn = '%02x' %(int(self.ListOfDevices[nwkid]['SQN'],16) + 1)
-    payload = cluster_frame + sqn + '0500f02300000000'
+
+    payload = cluster_frame + manuf_id + sqn + '0500f02300000000'
     raw_APS_request( self, 'ffff', '01', '0000', '0104', payload)
 
 
