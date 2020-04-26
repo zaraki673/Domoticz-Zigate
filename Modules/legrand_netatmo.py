@@ -65,18 +65,22 @@ def legrandReadRawAPS(self, Devices, srcNWKID, srcEp, ClusterID, dstNWKID, dstEP
     # At Device Annoucement 0x00 and 0x05 are sent by device
 
     FrameClusterField = MsgPayload[0:2]
-    if FrameClusterField in ( '15' ): 
+
+    if FrameClusterField in ( '15', ): 
         # 0x15: Cluster Specifc, Manuf Code, Client to Srerve, Disable Default Response
         ManufacturerCode = MsgPayload[2:6]
         SQN = MsgPayload[6:8]
         Command = MsgPayload[8:10]
         Data = MsgPayload[10:]
         
-    elif FrameClusterField in ( '11' ) :
+    elif FrameClusterField in ( '11', ) :
         # 0x11: Cluster Specific, Client to Server, Disable Default response
         SQN = MsgPayload[2:4]
         Command = MsgPayload[4:6]
         Data = MsgPayload[6:]
+
+    else:
+        Domoticz.Log("legrandReadRawAPS - Unexpected FCF: %s" %(FrameClusterField))
 
     if Command == '00': # No data (Cluster 0x0102)
         pass
