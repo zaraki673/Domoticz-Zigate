@@ -394,6 +394,7 @@ ZIGATE_COMMANDS = {
         0x0110: {'Sequence': (0x8000, 0x8110), 'Command': 'Write Attribute Request' , 'NwkId 2nd Bytes': True },
         0x0111: {'Sequence': (0x8000, 0x8002), 'Command': 'IAS WD mode' , 'NwkId 2nd Bytes': True },
         0x0112: {'Sequence': (0x8000, 0x8002), 'Command': 'IAS WD Squawk' , 'NwkId 2nd Bytes': True },
+        0x0113: {'Sequence': (0x8000, ) , 'Command': 'Write Attribute No Response' , 'NwkId 2nd Bytes': True },
         0x0120: {'Sequence': (0x8000, 0x8120), 'Command': 'Configure Reporting Request' , 'NwkId 2nd Bytes': True },
         0x0140: {'Sequence': (0x8000, 0x8140), 'Command': 'Attribute Discovery request' , 'NwkId 2nd Bytes': False },
 

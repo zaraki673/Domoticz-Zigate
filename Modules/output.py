@@ -968,10 +968,8 @@ def write_attributeNoResponse( self, key, EPin, EPout, clusterID, manuf_id, manu
     datas = addr_mode + key + ZIGATE_EP + EPout + clusterID 
     datas += direction + manuf_spec + manuf_id
     datas += lenght +attribute + data_type + data
-    loggingOutput( self, 'Debug', "write_attribute No Reponse for %s/%s - >%s<" %(key, EPout, datas), key)
+    loggingOutput( self, 'Log', "write_attribute No Reponse for %s/%s - >%s<" %(key, EPout, datas), key)
     sendZigateCmd(self, "0113", str(datas) ) 
-
-
 
 def setPIRoccupancyTiming( self, key ):
 
