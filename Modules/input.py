@@ -18,7 +18,7 @@ import json
 from Modules.domoticz import MajDomoDevice, lastSeenUpdate, timedOutDevice
 from Modules.tools import timeStamped, updSQN, DeviceExist, getSaddrfromIEEE, IEEEExist, initDeviceInList, mainPoweredDevice, loggingMessages, lookupForIEEE
 from Modules.logging import loggingPairing, loggingInput
-from Modules.output import sendZigateCmd, leaveMgtReJoin, ReadAttributeRequest_0000, ReadAttributeRequest_0001, setTimeServer, ZigatePermitToJoin
+from Modules.output import sendZigateCmd, leaveMgtReJoin, ReadAttributeRequest_0000, ReadAttributeRequest_0001, setTimeServer, ZigatePermitToJoin, write_attributeNoResponse
 from Modules.bindings import rebind_Clusters
 from Modules.livolo import livolo_bind
 from Modules.configureReporting import processConfigureReporting
@@ -2144,6 +2144,11 @@ def Decode004D(self, Devices, MsgData, MsgRSSI) : # Reception Device announce
             PREFIX_MACADDR_LIVOLO = '00124b00'
             if MsgIEEE[0:len(PREFIX_MACADDR_LIVOLO)] == PREFIX_MACADDR_LIVOLO:
                 livolo_bind( self, MsgSrcAddr, '06')
+
+        PREFIX_MACADDR_LEGRAND = '000474'
+        if MsgIEEE[0:len(PREFIX_MACADDR_LEGRAND)] == PREFIX_MACADDR_LEGRAND:
+            Domoticz.Log("Detected a Legrand IEEE, broadcast Write Attribute 0x0000/0xf000")
+            write_attributeNoResponse( self, MsgSrcAddr, ZIGATE_EP, '01', '0000', '1021', '01', 'f000', '23', '00000000')
 
         # New device comming. The IEEE is not known
         loggingInput( self, 'Debug', "Decode004D - New Device %s %s" %(MsgSrcAddr, MsgIEEE), MsgSrcAddr)
