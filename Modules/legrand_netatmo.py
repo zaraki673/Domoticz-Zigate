@@ -119,14 +119,14 @@ def sendFC01Command( self, nwkid, ep, cmd, data):
         Domoticz.Error("sendFC01Command - nwkid: %s do not exist" %nwkid)
         return
 
-    manuf_id = '1021'
+    manuf = '1021'
+    manuf_id = '%04X' %(struct.unpack('h',struct.pack('>H',int(manuf,16)))[0])
     cluster_id = 'fc01'
 
     EPout = '01'
     for tmpEp in self.ListOfDevices[nwkid]['Ep']:
         if "fc01" in self.ListOfDevices[nwkid]['Ep'][tmpEp]:
             EPout= tmpEp
-
 
     cluster_frame = '1d' # Cluster Spec, Manuf Spec, Sever to Client, Disable Default Response
     sqn = '00'
