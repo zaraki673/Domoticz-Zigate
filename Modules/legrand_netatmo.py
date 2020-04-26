@@ -115,7 +115,9 @@ def legrandReadRawAPS(self, Devices, srcNWKID, srcEp, ClusterID, dstNWKID, dstEP
         _ieee = Data[4:20]
         _code = Data[20:4]
         Domoticz.Log("---> Decoding cmd: 0x0a Group: %s, Ieee: %s Code: %s" %(LegrandGroupMemberShip, _ieee, _code))
-
+        status = '00'
+        _ieee = '4fa582000074040000101' # IEEE du Dimmer
+        sendFC01Command( self, srcNWKID, srcEp, '10', status + _code + _ieee )
 
 
 def sendFC01Command( self, nwkid, ep, cmd, data):
