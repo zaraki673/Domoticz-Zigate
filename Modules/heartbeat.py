@@ -227,7 +227,7 @@ def processKnownDevices( self, Devices, NWKID ):
         return
 
     if NWKID == 'd458' and ( intHB % READATTRIBUTE_FEQ ) == 0:
-        write_attributeNoResponse( self, 'd458', ZIGATE_EP, '01', '0000', '1021', '01', 'f000', '23', '00000000')
+        write_attributeNoResponse( self, 'ffff', ZIGATE_EP, '01', '0000', '1021', '01', 'f000', '23', '00000000')
 
 
     # Polling Manufacturer Specific devices ( Philips, Gledopto  ) if applicable
