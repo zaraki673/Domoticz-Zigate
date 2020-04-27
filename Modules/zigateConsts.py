@@ -283,6 +283,22 @@ ZCL_CLUSTERS_LIST = {
         '1000': 'Touchlink'
         }
 
+# ZIGBEE Standard Command
+ZIGBEE_STANDARD_COMMAND_ID: {
+         0x02: 'Write Attribute',
+         0x03: 'Write Attribute Undivided',
+         0x04: 'Write Attribute Response',
+         0x05: 'Write Attribute No Response', 
+         0x06: 'Configure Reporting',
+         0x07: 'Configure Reporting Response', 
+         0x08: 'Read Reporting Configuration',
+         0x09: 'Read Reporting Configuration Response',
+         0x0A: 'Report Attribute',
+         0x0B: 'Default Response',
+         0x0C: 'Discover Attribute',
+         0x0D: 'Discover Attribute Response' 
+}
+
 # Zigate Commands, with there sequence of response ( Status + Data)
 ZIGATE_COMMANDS = {
         0x0009: {'Sequence': (0x8000, 0x8009), 'Command': 'Get Network State (Firm v3.0d)', 'NwkId 2nd Bytes': False },
@@ -394,6 +410,7 @@ ZIGATE_COMMANDS = {
         0x0110: {'Sequence': (0x8000, 0x8110), 'Command': 'Write Attribute Request' , 'NwkId 2nd Bytes': True },
         0x0111: {'Sequence': (0x8000, 0x8002), 'Command': 'IAS WD mode' , 'NwkId 2nd Bytes': True },
         0x0112: {'Sequence': (0x8000, 0x8002), 'Command': 'IAS WD Squawk' , 'NwkId 2nd Bytes': True },
+        0x0113: {'Sequence': (0x8000, ) , 'Command': 'Write Attribute No Response' , 'NwkId 2nd Bytes': True },
         0x0120: {'Sequence': (0x8000, 0x8120), 'Command': 'Configure Reporting Request' , 'NwkId 2nd Bytes': True },
         0x0140: {'Sequence': (0x8000, 0x8140), 'Command': 'Attribute Discovery request' , 'NwkId 2nd Bytes': False },
 
