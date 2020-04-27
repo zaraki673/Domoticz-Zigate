@@ -33,6 +33,7 @@ from Modules.output import  sendZigateCmd,  \
 
 from Modules.lumi import enableOppleSwitch
 from Modules.livolo import livolo_bind
+from Modules.legrand_netatmo import registrationLegrand
 from Modules.orvibo import OrviboRegistration
 from Modules.configureReporting import processConfigureReporting
 from Modules.profalux import profalux_fake_deviceModel
@@ -339,6 +340,11 @@ def processNotinDBDevices( self, Devices, NWKID , status , RIA ):
                             unbindDevice( self, self.ListOfDevices[NWKID]['IEEE'], iterEp, iterBindCluster)
 
                         bindDevice( self, self.ListOfDevices[NWKID]['IEEE'], iterEp, iterBindCluster)
+ 
+            # In case of Legrand Remote, let's do what we have to do
+            if 'Manufacturer' in self.ListOfDevices[NWKID]:
+                if self.ListOfDevices[NWKID]['Manufacturer'] == '1021':
+                    registrationLegrand( self, NWKID )
 
             # 2 Enable Configure Reporting for any applicable cluster/attributes
             if self.pluginconf.pluginConf['capturePairingInfos']:
@@ -358,6 +364,10 @@ def processNotinDBDevices( self, Devices, NWKID , status , RIA ):
                             Domoticz.Log("---> for cluster: %s" %iterReadAttrCluster)
                             func = READ_ATTRIBUTES_REQUEST[iterReadAttrCluster][0]
                             func( self, NWKID)
+ 
+ 
+ 
+ 
 
             # In case of Schneider Wiser, let's do the Registration Process
             if 'Manufacturer' in self.ListOfDevices[NWKID]:

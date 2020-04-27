@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # coding: utf-8 -*-
 #
-# Author: zaraki673 & pipiche38
+# Author: pipiche38
 #
 """
-    Module: z_output.py
+    Module: legrand_netamo.py
 
     Description: All communications towards Zigate
 
@@ -18,9 +18,10 @@ import json
 from datetime import datetime
 from time import time
 
-from Modules.zigateConsts import MAX_LOAD_ZIGATE
+from Modules.zigateConsts import MAX_LOAD_ZIGATE, ZIGATE_EP, LEGRAND_REMOTES
+from Modules.pollControl import FastPollStop, PollControlCheckin
 from Modules.logging import loggingLegrand
-from Modules.output import raw_APS_request, write_attribute
+from Modules.output import raw_APS_request, write_attribute, write_attributeNoResponse
 
 def pollingLegrand( self, key ):
 
@@ -146,37 +147,29 @@ def registrationLegrand( self, nwkid):
     # Cluster: 0xfc01
     # Command: 0x0e
     # Data: 01
-    pass
 
-def registrationLegrand( self, nwkid):
+    if nwkid not in self.ListOfDevices:
+        Domoticz.Error("registrationLegrand - unknown device %s" %nwkid)
+        return
 
-    return
+    if 'Model' not in self.ListOfDevices:
+        Domoticz.Error("registrationLegrand - device without a Model Name %s" %nwkid)
+        return
 
-def rejoin_legrand( self, nwkid):
+    if self.ListOfDevices['Model'] in LEGRAND_REMOTES:
+        Domoticz.Log("registrationLegrand - Poll Control Management")
+        PollControlCheckin(self, nwkid)
+        FastPollStop(self, nwkid)
+
+
+def rejoin_legrand_mainpower( self, nwkid):
 
     """
     Send a Write Attributes no responses
     """
 
-    if nwkid not in self.ListOfDevices:
-        return
-
-    manuf_id = '1021'
-
-    EPout = '01'
-    for tmpEp in self.ListOfDevices[nwkid]['Ep']:
-        if "fc01" in self.ListOfDevices[nwkid]['Ep'][tmpEp]:
-            EPout= tmpEp
-
-    # To be use if the Write Attribute is not conclusive
-    cluster_frame = '14'
-    sqn = '00'
-    if 'SQN' in self.ListOfDevices[nwkid]:
-        if self.ListOfDevices[nwkid]['SQN'] != {} and self.ListOfDevices[nwkid]['SQN'] != '':
-            sqn = '%02x' %(int(self.ListOfDevices[nwkid]['SQN'],16) + 1)
-
-    payload = cluster_frame + manuf_id + sqn + '0500f02300000000'
-    raw_APS_request( self, 'ffff', '01', '0000', '0104', payload)
+    Domoticz.Log("Detected Legrand IEEE, broadcast Write Attribute 0x0000/0xf000")
+    write_attributeNoResponse( self, 'ffff', ZIGATE_EP, '01', '0000', '1021', '01', 'f000', '23', '00000000')
 
 
 def legrand_fc01( self, nwkid, command, OnOff):
