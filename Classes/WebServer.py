@@ -628,7 +628,7 @@ class WebServer(object):
                 if not self.networkmap.NetworkMapPhase():
                     self.networkmap.start_scan()
                 else:
-                    self.logging( 'Log', "Cannot start Network Topology as one is in the pipe")
+                    self.logging( 'Log', "Cannot start Network Topology as one is in progress...")
         return _response
 
     def rest_zigate_erase_PDM( self, verb, data, parameters):
@@ -697,8 +697,10 @@ class WebServer(object):
         action = {}
         if verb == 'GET':
             if self.pluginparameters['Mode1'] != 'None':
-                sendZigateCmd(self, "0011", "" ) # Software Reset
+                self.zigatedata['startZigateNeeded'] = True
                 #start_Zigate( self )
+                sendZigateCmd(self, "0011", "" ) # Software Reset
+
             action['Name'] = 'Software reboot of Zigate'
             action['TimeStamp'] = int(time())
         _response["Data"] = json.dumps( action , sort_keys=True )

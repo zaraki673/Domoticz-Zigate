@@ -523,12 +523,21 @@ def Decode8009(self,Devices, MsgData, MsgRSSI) : # Network State response (Firm 
         Domoticz.Error("Zigate not correctly initialized")
         return
 
+    # At that stage IEEE is set to 0x0000 which is correct for the Coordinator
     if extaddr not in self.IEEE2NWK:
         if self.IEEE2NWK != addr:
             initLODZigate( self, addr, extaddr )
 
     if self.currentChannel != int(Channel,16):
         self.adminWidgets.updateNotificationWidget( Devices, 'Zigate Channel: %s' %str(int(Channel,16)))
+
+    # Let's check if this is a first initialisation, and then we need to update the Channel setting
+    if 'startZigateNeeded' not in self.zigatedata and not self.startZigateNeeded:    
+        if str(int(Channel,16)) != self.pluginconf.pluginConf['channel']:
+            Domoticz.Status("Updating Channel in Plugin Configuration from: %s to: %s" \
+                %( self.pluginconf.pluginConf['channel'], int(Channel,16)))
+            self.pluginconf.pluginConf['channel'] = str(int(Channel,16))
+            self.pluginconf.write_Settings()
 
     self.currentChannel = int(Channel,16)
 
@@ -618,12 +627,28 @@ def Decode8011( self, Devices, MsgData, MsgRSSI ):
                     loggingInput( self, 'Debug', "Receive NACK from %s clusterId: %s" %(MsgSrcAddr, MsgClusterId), MsgSrcAddr)
 
 def Decode8012( self, Devices, MsgData, MsgRSSI ):
+    """
+    confirms that a data packet sent by the local node has been successfully 
+    passed down the stack to the MAC layer and has made its first hop towards
+    its destination (an acknowledgment has been received from the next hop node).
+    """
 
-    MsgSrcAddr = MsgData[0:4]
-    MsgSrcEp = MsgData[4:6]
-    MsgClusterId = MsgData[6:10]
-    loggingInput( self, 'Log', "Decode8012 - Src: %s, SrcEp: %s, Cluster: %s" \
-            %(MsgSrcAddr, MsgSrcEp, MsgClusterId))
+    MsgStatus = MsgData[0:2]
+    MsgSrcEp = MsgData[2:4]
+    MsgDstEp = MsgData[4:6]
+    MsgAddrMode = MsgData[6:8]
+
+    if int(MsgAddrMode,16) == 0x03: # IEEE
+        MsgSrcIEEE = MsgData[8:24]
+        MsgSQN = MsgData[24:26]
+        if MsgSrcIEEE in self.IEEE2NWK:
+            MsgSrcNwkId = self.IEEE2NWK[MsgSrcIEEE ]
+    else:
+        MsgSrcNwkid = MsgData[8:12]
+        MsgSQN = MsgData[12:14]
+ 
+    loggingInput( self, 'Log', "Decode8012 - Src: %s, SrcEp: %s,Status: %s" \
+            %(MsgSrcNwkid, MsgSrcEp, MsgStatus))
 
 
 def Decode8014(self, Devices, MsgData, MsgRSSI): # "Permit Join" status response
@@ -756,7 +781,15 @@ def Decode8024(self, Devices, MsgData, MsgRSSI) : # Network joined / formed
     MsgExtendedAddress=MsgData[6:22]
     MsgChannel=MsgData[22:24]
 
-    if MsgExtendedAddress != '' and MsgShortAddress != '':
+    if MsgExtendedAddress != '' and MsgShortAddress != '' and MsgShortAddress == '0000':
+        # Let's check if this is a first initialisation, and then we need to update the Channel setting
+        if 'startZigateNeeded' not in self.zigatedata and not self.startZigateNeeded:
+            if str(int(MsgChannel,16)) != self.pluginconf.pluginConf['channel']:
+                Domoticz.Status("Updating Channel in Plugin Configuration from: %s to: %s" \
+                    %( self.pluginconf.pluginConf['channel'], int(MsgChannel,16)))
+                self.pluginconf.pluginConf['channel'] = str(int(MsgChannel,16))
+                self.pluginconf.write_Settings()
+
         self.currentChannel = int(MsgChannel,16)
         self.ZigateIEEE = MsgExtendedAddress
         self.ZigateNWKID = MsgShortAddress
@@ -766,8 +799,10 @@ def Decode8024(self, Devices, MsgData, MsgRSSI) : # Network joined / formed
         self.zigatedata['Short Address'] = MsgShortAddress
         self.zigatedata['Channel'] = int(MsgChannel,16)
 
-    loggingInput( self, 'Status', "Zigate details IEEE: %s, NetworkID: %s, Channel: %s, Status: %s: %s" \
+        loggingInput( self, 'Status', "Zigate details IEEE: %s, NetworkID: %s, Channel: %s, Status: %s: %s" \
             %(MsgExtendedAddress, MsgShortAddress, int(MsgChannel,16), MsgDataStatus, Status) )
+    else:
+        Domoticz.Error("Zigate initialisation failed IEEE: %s, Nwkid: %s, Channel: %s" %(MsgExtendedAddress,MsgShortAddress, MsgChannel ))
 
 def Decode8028(self, Devices, MsgData, MsgRSSI) : # Authenticate response
     MsgLen=len(MsgData)
