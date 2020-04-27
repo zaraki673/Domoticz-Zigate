@@ -960,6 +960,7 @@ def write_attributeNoResponse( self, key, EPin, EPout, clusterID, manuf_id, manu
     if key == 'ffff':
         addr_mode = '04'
     direction = "00"
+
     if data_type == '42': # String
         # In case of Data Type 0x42 ( String ), we have to add the length of string before the string.
         data = '%02x' %(len(data)//2) + data
@@ -969,7 +970,7 @@ def write_attributeNoResponse( self, key, EPin, EPout, clusterID, manuf_id, manu
     datas += direction + manuf_spec + manuf_id
     datas += lenght +attribute + data_type + data
     loggingOutput( self, 'Log', "write_attribute No Reponse for %s/%s - >%s<" %(key, EPout, datas), key)
-    sendZigateCmd(self, "0113", str(datas) ) 
+    sendZigateCmd(self, "0113", datas ) 
 
 def setPIRoccupancyTiming( self, key ):
 
