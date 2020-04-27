@@ -21,7 +21,7 @@ from Modules.output import  sendZigateCmd,  \
         getListofAttribute, \
         setPowerOn_OnOff, \
         scene_membership_request, \
-        write_attributeNoResponse, |
+        write_attributeNoResponse, \
         ReadAttributeRequest_0000_basic, \
         ReadAttributeRequest_0000, ReadAttributeRequest_0001, ReadAttributeRequest_0006, ReadAttributeRequest_0008, ReadAttributeRequest_0006_0000, ReadAttributeRequest_0008_0000,\
         ReadAttributeRequest_0100, \
