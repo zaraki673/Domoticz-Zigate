@@ -283,6 +283,22 @@ ZCL_CLUSTERS_LIST = {
         '1000': 'Touchlink'
         }
 
+# ZIGBEE Standard Command
+ZIGBEE_STANDARD_COMMAND_ID: {
+         0x02: 'Write Attribute',
+         0x03: 'Write Attribute Undivided',
+         0x04: 'Write Attribute Response',
+         0x05: 'Write Attribute No Response', 
+         0x06: 'Configure Reporting',
+         0x07: 'Configure Reporting Response', 
+         0x08: 'Read Reporting Configuration',
+         0x09: 'Read Reporting Configuration Response',
+         0x0A: 'Report Attribute',
+         0x0B: 'Default Response',
+         0x0C: 'Discover Attribute',
+         0x0D: 'Discover Attribute Response' 
+}
+
 # Zigate Commands, with there sequence of response ( Status + Data)
 ZIGATE_COMMANDS = {
         0x0009: {'Sequence': (0x8000, 0x8009), 'Command': 'Get Network State (Firm v3.0d)', 'NwkId 2nd Bytes': False },
