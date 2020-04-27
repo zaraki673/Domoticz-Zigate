@@ -21,7 +21,6 @@ from Modules.output import  sendZigateCmd,  \
         getListofAttribute, \
         setPowerOn_OnOff, \
         scene_membership_request, \
-        write_attributeNoResponse, \
         ReadAttributeRequest_0000_basic, \
         ReadAttributeRequest_0000, ReadAttributeRequest_0001, ReadAttributeRequest_0006, ReadAttributeRequest_0008, ReadAttributeRequest_0006_0000, ReadAttributeRequest_0008_0000,\
         ReadAttributeRequest_0100, \
@@ -225,10 +224,6 @@ def processKnownDevices( self, Devices, NWKID ):
     ## Starting this point, it is ony relevant for Main Powered Devices.
     if not _mainPowered:
         return
-
-    if NWKID == 'd458' and ( intHB % READATTRIBUTE_FEQ ) == 0:
-        write_attributeNoResponse( self, 'ffff', ZIGATE_EP, '01', '0000', '1021', '01', 'f000', '23', '00000000')
-
 
     # Polling Manufacturer Specific devices ( Philips, Gledopto  ) if applicable
     rescheduleAction = (rescheduleAction or pollingManufSpecificDevices( self, NWKID))
