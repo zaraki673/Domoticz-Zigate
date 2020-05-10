@@ -173,6 +173,16 @@ def loggingLegrand( self, logType, message, nwkid=None):
         _loggingStatus( self, message )
     return
 
+def loggingLumi( self, logType, message, nwkid=None):
+
+    if self.pluginconf.pluginConf['debugLumi'] and logType == 'Debug':
+        _logginfilter( self, message, nwkid)
+    elif  logType == 'Log':
+        _loggingLog( self,  message )
+    elif logType == 'Status':
+        _loggingStatus( self, message )
+    return
+
 def loggingProfalux( self, logType, message, nwkid=None):
 
     if self.pluginconf.pluginConf['debugProfalux'] and logType == 'Debug':
@@ -186,6 +196,16 @@ def loggingProfalux( self, logType, message, nwkid=None):
 def loggingSchneider( self, logType, message, nwkid=None):
 
     if self.pluginconf.pluginConf['debugSchneider'] and logType == 'Debug':
+        _logginfilter( self, message, nwkid)
+    elif  logType == 'Log':
+        _loggingLog( self,  message )
+    elif logType == 'Status':
+        _loggingStatus( self, message )
+    return
+
+def loggingPhilips( self, logType, message, nwkid=None):
+    
+    if self.pluginconf.pluginConf['debugPhilips'] and logType == 'Debug':
         _logginfilter( self, message, nwkid)
     elif  logType == 'Log':
         _loggingLog( self,  message )

@@ -113,6 +113,8 @@ SETTINGS = {
 
             #Over The Air Upgrade
         'OverTheAirUpgrade': { 'Order': 7, 'param': {
+                'forceOTAUpgrade': { 'type':'bool', 'default':0 , 'current': None, 'restart':True , 'hidden':False, 'Advanced':True},
+                'forceOTAMask': { 'type':'hex', 'default':0x00050000 , 'current': None, 'restart':True , 'hidden':False, 'Advanced':True},
                 'batteryOTA':  { 'type':'bool', 'default':0 , 'current': None, 'restart':True , 'hidden':False, 'Advanced':False},
                 'waitingOTA':  { 'type':'int', 'default':3600 , 'current': None, 'restart':True , 'hidden':False, 'Advanced':False},
                 'OTAwait4nextImage': { 'type':'int', 'default':60 , 'current': None, 'restart':False , 'hidden':False, 'Advanced':True}
@@ -172,8 +174,10 @@ SETTINGS = {
                 'debugWebServer':       { 'type':'bool', 'default':0 , 'current': None, 'restart':False , 'hidden':False, 'Advanced':True},
                 'debugzigateCmd':       { 'type':'bool', 'default':0 , 'current': None, 'restart':False , 'hidden':True, 'Advanced':True},
                 'debugLegrand':         { 'type':'bool', 'default':0 , 'current': None, 'restart':False , 'hidden':False, 'Advanced':True},
+                'debugLumi':         { 'type':'bool', 'default':0 , 'current': None, 'restart':False , 'hidden':False, 'Advanced':True},
                 'debugProfalux':        { 'type':'bool', 'default':0 , 'current': None, 'restart':False , 'hidden':False, 'Advanced':True},
                 'debugSchneider':       { 'type':'bool', 'default':0 , 'current': None, 'restart':False , 'hidden':False, 'Advanced':True},
+                'debugPhilips':  { 'type':'bool', 'default':0 , 'current': None, 'restart':False , 'hidden':False, 'Advanced':True},
                 'debugPDM':       { 'type':'bool', 'default':0 , 'current': None, 'restart':False , 'hidden':False, 'Advanced':True}
                 }},
 
@@ -200,15 +204,20 @@ SETTINGS = {
                 'numEnergyReports': { 'type':'int', 'default':4 , 'current': None, 'restart':False , 'hidden':False, 'Advanced':False},
                 'PowerOn_OnOff': { 'type':'int', 'default':255 , 'current': None, 'restart':False , 'hidden':True, 'Advanced':False},
                 'TradfriKelvinStep': { 'type':'int', 'default':51 , 'current': None, 'restart':False , 'hidden':False, 'Advanced':False},
+                'AqaraOppleBulbMode': {'type':'bool', 'default':0 , 'current': None, 'restart':False , 'hidden':False, 'Advanced':True},
                 'vibrationAqarasensitivity': { 'type':'str', 'default':'medium' , 'current': None, 'restart':False , 'hidden':False, 'Advanced':False},
                 }},
 
+        'Patching': { 'Order': 15, 'param': {
+            'Bug566': {'type':'bool', 'default':0, 'current': None, 'restart':False , 'hidden':False, 'Advanced':True},
+                }},
+
         # Experimental
-        'Experimental': { 'Order': 15, 'param': {
+        'Experimental': { 'Order': 16, 'param': {
                 'expJsonDatabase': { 'type':'bool', 'default':0 , 'current': None, 'restart':False , 'hidden':False, 'Advanced':True},
                 'ExpDeviceAnnoucement1': { 'type':'bool', 'default':0 , 'current': None, 'restart':False , 'hidden':False, 'Advanced':True},
                 'ExpDeviceAnnoucement2': { 'type':'bool', 'default':0 , 'current': None, 'restart':False , 'hidden':False, 'Advanced':True},
-                'ExpDeviceAnnoucement3': { 'type':'bool', 'default':0 , 'current': None, 'restart':False , 'hidden':False, 'Advanced':True},
+                'ExpDeviceAnnoucement3': { 'type':'bool', 'default':1 , 'current': None, 'restart':False , 'hidden':False, 'Advanced':True},
                 'XiaomiLeave':  { 'type':'bool', 'default':0 , 'current': None, 'restart':False , 'hidden':True, 'Advanced':True},
                 'rebindLivolo':  { 'type':'bool', 'default':0 , 'current': None, 'restart':False , 'hidden':True, 'Advanced':False},
                 'zmode':  { 'type':'str', 'default':'ZigBee' , 'current': None, 'restart':True , 'hidden':True, 'Advanced':False},
@@ -230,29 +239,30 @@ class PluginConf:
         for theme in SETTINGS:
             for param in SETTINGS[theme]['param']:
                 if param == 'pluginHome':
-                    pass
-                elif param == 'homedirectory':
+                    continue
+                if param == 'homedirectory':
                     self.pluginConf[param] = homedir
-                elif param == 'pluginData':
-                    self.pluginConf[param] = self.pluginConf['pluginHome'] + 'Data/'
                 elif param == 'pluginConfig':
                     self.pluginConf[param] = self.pluginConf['pluginHome'] + 'Conf/'
-                elif param == 'pluginWWW':
-                    self.pluginConf[param] = self.pluginConf['pluginHome'] + 'www/'
-                elif param == 'pluginReports':
-                    self.pluginConf[param] = self.pluginConf['pluginHome'] + 'Reports/'
-                elif param == 'pluginOTAFirmware':
-                    self.pluginConf[param] = self.pluginConf['pluginHome'] + 'OTAFirmware/'
+                elif param == 'pluginData':
+                    self.pluginConf[param] = self.pluginConf['pluginHome'] + 'Data/'
                 elif param == 'pluginLogs':
                     self.pluginConf[param] = self.pluginConf['pluginHome'] + 'Logs/'
+                elif param == 'pluginOTAFirmware':
+                    self.pluginConf[param] = self.pluginConf['pluginHome'] + 'OTAFirmware/'
+                elif param == 'pluginReports':
+                    self.pluginConf[param] = self.pluginConf['pluginHome'] + 'Reports/'
+                elif param == 'pluginWWW':
+                    self.pluginConf[param] = self.pluginConf['pluginHome'] + 'www/'
                 else:
                     self.pluginConf[param] = SETTINGS[theme]['param'][param]['default']
 
         self.pluginConf['filename'] = self.pluginConf['pluginConfig'] + "PluginConf-%02d.json" %hardwareid
-        if not os.path.isfile(self.pluginConf['filename']):
-            self._load_oldfashon( homedir, hardwareid)
-        else:
+        if os.path.isfile(self.pluginConf['filename']):
             self._load_Settings()
+
+        else:
+            self._load_oldfashon( homedir, hardwareid)
 
         # Reset eraseZigatePDM to default
         self.pluginConf['eraseZigatePDM'] = 0
@@ -261,13 +271,14 @@ class PluginConf:
         if self.pluginConf['TradfriKelvinStep'] < 0 or  self.pluginConf['TradfriKelvinStep'] > 255:
             self.pluginConf['TradfriKelvinStep'] = 75
 
-        if self.pluginConf['Certification'] == 'CE':
+        if (
+            self.pluginConf['Certification'] == 'CE'
+            or self.pluginConf['Certification'] != 'FCC'
+        ):
             self.pluginConf['CertificationCode'] = 0x01
 
-        elif self.pluginConf['Certification'] == 'FCC':
-            self.pluginConf['CertificationCode'] = 0x02
         else:
-            self.pluginConf['CertificationCode'] = 0x01
+            self.pluginConf['CertificationCode'] = 0x02
 
         if self.pluginConf['zmode'] == 'Agressive':
             self.zmode = 'Agressive'  # We are only waiting for Ack to send the next Command
@@ -275,9 +286,8 @@ class PluginConf:
         # Check Path
         for theme in SETTINGS:
             for param in SETTINGS[theme]['param']:
-                if SETTINGS[theme]['param'][param]['type'] == 'path':
-                    if not os.path.exists( self.pluginConf[ param] ):
-                        Domoticz.Error( "Cannot access path: %s" % self.pluginConf[ param] )
+                if SETTINGS[theme]['param'][param]['type'] == 'path' and not os.path.exists(self.pluginConf[param]):
+                    Domoticz.Error( "Cannot access path: %s" % self.pluginConf[ param] )
 
         # Let's check the Type
         for theme in SETTINGS:

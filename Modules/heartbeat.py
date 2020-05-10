@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# coding: utf-8 -*-
 #
 # Author: zaraki673 & pipiche38
 #
@@ -33,7 +35,7 @@ from Modules.schneider_wiser import schneider_thermostat_behaviour, schneider_fi
 from Modules.philips import pollingPhilips
 from Modules.gledopto import pollingGledopto
 
-from Modules.tools import removeNwkInList, mainPoweredDevice
+from Modules.tools import removeNwkInList, mainPoweredDevice, ReArrangeMacCapaBasedOnModel
 from Modules.logging import loggingPairing, loggingHeartbeat
 from Modules.domoticz import CreateDomoDevice, timedOutDevice
 from Modules.zigateConsts import HEARTBEAT, MAX_LOAD_ZIGATE, CLUSTERS_LIST, LEGRAND_REMOTES, LEGRAND_REMOTE_SHUTTER, LEGRAND_REMOTE_SWITCHS, ZIGATE_EP
@@ -131,7 +133,7 @@ def pollingManufSpecificDevices( self, NWKID):
         brand, param , func =  POLLING_TABLE_SPECIFICS[ devManufName ]        
 
     if brand is None:
-        return
+        return False
     
     _HB = int(self.ListOfDevices[NWKID]['Heartbeat'],16)
     _FEQ = self.pluginconf.pluginConf[ param ] // HEARTBEAT
@@ -149,8 +151,6 @@ def pollingDeviceStatus( self, NWKID):
     Purpose is to trigger ReadAttrbute 0x0006 and 0x0008 on attribute 0x0000 if applicable
     """
 
-    rescheduleAction = False
-
     for iterEp in self.ListOfDevices[NWKID]['Ep']:
         if '0006' in self.ListOfDevices[NWKID]['Ep'][iterEp]:
             ReadAttributeRequest_0006_0000( self, NWKID)
@@ -162,7 +162,7 @@ def pollingDeviceStatus( self, NWKID):
             loggingHeartbeat( self, 'Debug', "++ pollingDeviceStatus -  %s  for LVLControl" \
             %(NWKID), NWKID)
 
-    return rescheduleAction
+    return False
 
 
 def processKnownDevices( self, Devices, NWKID ):
@@ -174,16 +174,8 @@ def processKnownDevices( self, Devices, NWKID ):
         self.ListOfDevices[NWKID]['Heartbeat'] = intHB
 
     # Hack bad devices
-    # Xiaomi b86opcn01 annouced itself as Main Powered!
-    if self.ListOfDevices[NWKID]['MacCapa'] == '84':
-        if 'Model' in self.ListOfDevices[NWKID]:
-            if self.ListOfDevices[NWKID]['Model'] == 'lumi.remote.b686opcn01':
-                self.ListOfDevices[NWKID]['MacCapa'] = '80'
-                self.ListOfDevices[NWKID]['PowerSource'] = ''
-                if 'Capability' in self.ListOfDevices[NWKID]:
-                    if 'Main Powered' in self.ListOfDevices[NWKID]['Capability']:
-                        self.ListOfDevices[NWKID]['Capability'].remove( 'Main Powered')
-
+    ReArrangeMacCapaBasedOnModel( self, NWKID, self.ListOfDevices[NWKID]['MacCapa'])
+ 
     # Check if this is a Main powered device or Not. Source of information are: MacCapa and PowerSource
     _mainPowered = mainPoweredDevice( self, NWKID)
 
@@ -202,7 +194,6 @@ def processKnownDevices( self, Devices, NWKID ):
             Domoticz.Error("Device Health - Nwkid: %s,Ieee: %s , Model: %s seems to be out of the network" \
                 %(NWKID, self.ListOfDevices[NWKID]['IEEE'], self.ListOfDevices[NWKID]['Model']))
             self.ListOfDevices[NWKID]['Health'] = 'Not seen last 24hours'
-
 
     # If device flag as Not Reachable, don't do anything
     if 'Health' in self.ListOfDevices[NWKID]:
@@ -249,11 +240,16 @@ def processKnownDevices( self, Devices, NWKID ):
         # Read Attributes if enabled
         now = int(time.time())   # Will be used to trigger ReadAttributes
         for tmpEp in self.ListOfDevices[NWKID]['Ep']:    
-            if tmpEp == 'ClusterType': continue
+            if tmpEp == 'ClusterType': 
+                continue
+
             for Cluster in READ_ATTRIBUTES_REQUEST:
-                if Cluster in ( 'Type', 'ClusterType', 'ColorMode' ): continue
+                if Cluster in ( 'Type', 'ClusterType', 'ColorMode' ): 
+                    continue
+
                 if Cluster not in self.ListOfDevices[NWKID]['Ep'][tmpEp]:
                     continue
+
                 if 'ReadAttributes' not in self.ListOfDevices[NWKID]:
                     self.ListOfDevices[NWKID]['ReadAttributes'] = {}
                     self.ListOfDevices[NWKID]['ReadAttributes']['Ep'] = {}
@@ -261,6 +257,7 @@ def processKnownDevices( self, Devices, NWKID ):
                 if 'Model' in self.ListOfDevices[NWKID]:
                     if self.ListOfDevices[NWKID]['Model'] == 'lumi.ctrl_neutral1' and tmpEp != '02': # All Eps other than '02' are blacklisted
                         continue
+                    
                     if  self.ListOfDevices[NWKID]['Model'] == 'lumi.ctrl_neutral2' and tmpEp not in ( '02' , '03' ):
                         continue
 
@@ -347,7 +344,9 @@ def processListOfDevices( self , Devices ):
     entriesToBeRemoved = []
 
     for NWKID in list( self.ListOfDevices.keys() ):
-        if NWKID in ('ffff', '0000'): continue
+        if NWKID in ('ffff', '0000'): 
+            continue
+
         # If this entry is empty, then let's remove it .
         if len(self.ListOfDevices[NWKID]) == 0:
             loggingHeartbeat( self, 'Debug', "Bad devices detected (empty one), remove it, adr:" + str(NWKID), NWKID)
