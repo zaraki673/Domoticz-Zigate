@@ -20,10 +20,18 @@ from Modules.widgets import SWITCH_LVL_MATRIX
 from Modules.domoTools import TypeFromCluster, RetreiveSignalLvlBattery, UpdateDevice_v2, RetreiveWidgetTypeList
 
 def MajDomoDevice(self, Devices, NWKID, Ep, clusterID, value, Attribute_='', Color_=''):
-    '''
+    """
     MajDomoDevice
     Update domoticz device accordingly to Type found in EP and value/Color provided
-    '''
+    """
+    def CheckUpdateGroup( self, NwkId, Ep, ClusterId):
+
+        if ClusterId not in ( '0006', '0008', '0102' ):
+            return
+
+        if self.groupmgt:
+            self.groupmgt.checkAndTriggerIfMajGroupNeeded( NwkId, Ep, ClusterId)
+
 
     def getDimmerLevelOfColor( self, value):
 
@@ -230,10 +238,36 @@ def MajDomoDevice(self, Devices, NWKID, Ep, clusterID, value, Attribute_='', Col
                 _mode = ((int(value,16) - 0x80) >> 1 ) & 1
 
                 if _mode in THERMOSTAT_MODE:
-                    nValue = _mode
                     sValue = THERMOSTAT_MODE[ _mode ]
-                    UpdateDevice_v2(self, Devices, DeviceUnit, nValue, sValue, BatteryLevel, SignalLevel)            
-                    
+                    nValue = _mode + 1
+                    UpdateDevice_v2(self, Devices, DeviceUnit, nValue, sValue, BatteryLevel, SignalLevel)
+
+            elif WidgetType == 'FIP' and Attribute_ == "e020":#  Wiser specific Fil Pilote
+                 # value is str
+                loggingWidget( self, "Debug", "------>  ThermoMode FIP: %s" %(value), NWKID)
+                FIL_PILOT_MODE = {
+                    0 : '10',
+                    1 : '20', # confort -1
+                    2 : '30', # confort -2
+                    3 : '40', # eco
+                    4 : '50', # frost protection
+                    5 : '60'
+                }
+                _mode = int(value,16)
+
+                if _mode in FIL_PILOT_MODE:
+                    sValue = FIL_PILOT_MODE[ _mode ]
+                    nValue = _mode + 1
+                    if '0201' in self.ListOfDevices[NWKID]['Ep'][Ep]:
+                        if 'e011' in self.ListOfDevices[NWKID]['Ep'][Ep]['0201']:
+                            if self.ListOfDevices[NWKID]['Ep'][Ep]['0201']['e011'] != {} and self.ListOfDevices[NWKID]['Ep'][Ep]['0201']['e011'] != '' :
+                                _value_mode_hact  = self.ListOfDevices[NWKID]['Ep'][Ep]['0201']['e011']
+                                _mode_hact = ((int(_value_mode_hact,16) - 0x80)  ) & 1
+                                if _mode_hact  == 0 :
+                                    loggingWidget( self, "Debug", "------>  Disable FIP widget: %s" %(value), NWKID)
+                                    nValue =  0
+                    UpdateDevice_v2(self, Devices, DeviceUnit, nValue, sValue, BatteryLevel, SignalLevel)
+
             elif WidgetType == 'ThermoMode' and Attribute_ == '001c':
                 # value seems to come as int or str. To be fixed
                 loggingWidget( self, "Debug", "------>  Thermostat Mode %s" %value, NWKID)
@@ -347,13 +381,14 @@ def MajDomoDevice(self, Devices, NWKID, Ep, clusterID, value, Attribute_='', Col
                 NewSvalue = '%s;%s;%s;%s;%s' % (SplitData[0], SplitData[1], SplitData[2], baroValue, Bar_forecast)
                 UpdateDevice_v2(self, Devices, DeviceUnit, NewNvalue, NewSvalue, BatteryLevel, SignalLevel)
 
-        if 'BSO' in ClusterType: # Not fully tested / So far developped for Profalux
+        if 'BSO-Orientation' in ClusterType: # 0xfc21 Not fully tested / So far developped for Profalux
             # value is str
-            if WidgetType == "BSO":
-                # Receveive Level (orientation) in degrees to convert into % for the dimmer
-                percent_value = (int(value) * 100 // 90)
-                nValue = 2
-                sValue = str(percent_value)
+            if WidgetType == "BSO-Orientation":
+                # Receveive Level (orientation) in degrees to convert into % for the slider
+                # Translate the Angle into Selector item
+                selector = int(value)  + 10
+                nValue = selector // 10
+                sValue = str(selector)
                 UpdateDevice_v2(self, Devices, DeviceUnit, nValue, sValue, BatteryLevel, SignalLevel)
 
         if ClusterType in ( 'Alarm', 'Door', 'Switch', 'SwitchButton', 'AqaraOppleMiddle', 'Motion', 
@@ -510,7 +545,7 @@ def MajDomoDevice(self, Devices, NWKID, Ep, clusterID, value, Attribute_='', Col
                 UpdateDevice_v2(self, Devices, DeviceUnit, nValue, str(value), BatteryLevel, SignalLevel)
 
         if 'LvlControl' in ClusterType: # LvlControl ( 0x0008)
-            if WidgetType == "LvlControl":
+            if WidgetType == 'LvlControl' or WidgetType == 'BSO-Volet':
                 # We need to handle the case, where we get an update from a Read Attribute or a Reporting message
                 # We might get a Level, but the device is still Off and we shouldn't make it On .
                 nValue = None
@@ -590,27 +625,25 @@ def MajDomoDevice(self, Devices, NWKID, Ep, clusterID, value, Attribute_='', Col
                 if value == '00': 
                     nValue = 0 
                     sValue = '00' #Off
-
+                    UpdateDevice_v2(self, Devices, DeviceUnit, nValue, sValue, BatteryLevel, SignalLevel, ForceUpdate_=True)
                 elif value == '01': 
                     nValue = 1 
                     sValue = "10" # On
-
+                    UpdateDevice_v2(self, Devices, DeviceUnit, nValue, sValue, BatteryLevel, SignalLevel, ForceUpdate_=True)
                 elif value == 'moveup': 
                     nValue = 2 
                     sValue = "20" # Move Up
-
+                    UpdateDevice_v2(self, Devices, DeviceUnit, nValue, sValue, BatteryLevel, SignalLevel, ForceUpdate_=True)
                 elif value == 'movedown': 
                     nValue = 3 
                     sValue = "30" # Move Down
-
+                    UpdateDevice_v2(self, Devices, DeviceUnit, nValue, sValue, BatteryLevel, SignalLevel, ForceUpdate_=True)
                 elif value == 'stop': 
                     nValue = 4 
                     sValue = "40" # Stop
-
+                    UpdateDevice_v2(self, Devices, DeviceUnit, nValue, sValue, BatteryLevel, SignalLevel, ForceUpdate_=True)
                 else:
-                    Domoticz.Error("------>  %s LegrandSelector Unknown value %s" %(NWKID, value))
-                    return
-                UpdateDevice_v2(self, Devices, DeviceUnit, nValue, sValue, BatteryLevel, SignalLevel, ForceUpdate_=True)
+                    Domoticz.Error("------>  %s LegrandSelector Unknown value %s" %(NWKID, value))         
 
             elif WidgetType == 'Generic_5_buttons':
                 loggingWidget( self, "Debug", "------> Generic 5 buttons : Value -> %s" %value, NWKID)
@@ -825,3 +858,6 @@ def MajDomoDevice(self, Devices, NWKID, Ep, clusterID, value, Attribute_='', Col
                 nValue = int(value)
                 sValue = value
                 UpdateDevice_v2(self, Devices, DeviceUnit, nValue, sValue, BatteryLevel, SignalLevel, ForceUpdate_= True)
+
+        # Check if this Device belongs to a Group. In that case update group
+        CheckUpdateGroup( self, NWKID, Ep,  clusterID )
